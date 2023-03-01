@@ -13,52 +13,52 @@ class Filter {
   
   constructor(arrayOfProducts) {
     this._products = arrayOfProducts;
-    this._filteredProducts = [];
   }
 
   static allowedFilters = new Map([
-    ['contains', (value, field) => this._products.forEach((obj) => obj[field].includes(value))],
-    ['starts', ],
-    ['ends', ],
-    ['<', ],
-    ['=', ],
-    ['>', ],
-    ['<=', ],
-    ['>=', ],
+    ['contains', (field, value) => field.includes(value)],
+    ['starts', (field, value) => field.startsWith(value)],
+    ['ends', (field, value) => field.endsWith(value)],
+    ['<', (field, value) => +field < +value],
+    ['=', (field, value) => +field === +value],
+    ['>', (field, value) => +field > +value],
+    ['<=', (field, value) => +field <= +value],
+    ['>=', (field, value) => +field >= +value],
   ]);
 
-  filer(request) {
+  filter(request) {
+    let filter = Filter.allowedFilters;
+    let filteredProducts = [];
+    let result;
 
-    let args = request.replace(/\-/g, ' ').replace(/(\d+)&/g, ' $1&').split('&');
-    args.forEach(str => {
-      let arr = str.split(' ');
+    let args = request.replace(/\-/g, ' ').replace(/(>=|<=|=|>|<\d+)/g, '$1 ').split('&');
+    this._products.forEach((product) => {
+      for (let str of args) { 
 
-      let field = arr[0];
-      let operand = arr[1];
-      let value = arr[2];
+        let arr = str.split(' ');
 
-      this._products.forEach((product) =>{
-        if (field in product && Filter.allowedFilters.has(operand)) {
-          
-        }
-      });
-
-
-    });
-
-    // console.log(args);
-    // return this._filteredProducts;
-  }
-  
+        let field = arr[0];
+        let operator = arr[1];
+        let value = arr[2];
+        
+        if (field in product && filter.has(operator)) {
+          result = filter.get(operator)(product[field], value);
+          if (!result) break;
+        } 
+      }
+      if (result) filteredProducts.push(product);
+    });   
+    return filteredProducts;
+  }  
 }
 
 let iphone = new Product('iPhone 14', 1000, 100, "The iPhone");
-let android = new Product('Pixel 7', 1000, 66, "Google Pixel");
-let sneakers = new Product('Nike Cortez', 200, 1000, "The Nike Cortez");
+let android = new Product('fd Pixel 7 fd', 1000, 5, "Google Pixel abc");
+let sneakers = new Product('Nike Cortez fd', 200, 1000, "The Nike Cortez abc");
 
 let products = [iphone, android, sneakers];
 
-let filer = new Filter(products);
+let filter = new Filter(products);
 
-filer.filer('name-contains-fd&price->=2&quantity->5&description-ends-abc');
-// filer.filer('name-starts-fd&quantity-=5');
+console.log(...filter.filter('name-contains-fd&price->=2&quantity->5&description-ends-abc'));
+console.log(...filter.filter('name-starts-fd&quantity-=5'));
