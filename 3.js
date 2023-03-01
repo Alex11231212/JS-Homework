@@ -8,6 +8,7 @@ class Product {
   }
 }
 
+
 class Filter {
   
   constructor(arrayOfProducts) {
@@ -16,7 +17,7 @@ class Filter {
   }
 
   static allowedFilters = new Map([
-    ['contains', (str, field) => str in this._products[field]],
+    ['contains', (value, field) => this._products.forEach((obj) => obj[field].includes(value))],
     ['starts', ],
     ['ends', ],
     ['<', ],
@@ -28,19 +29,20 @@ class Filter {
 
   filer(request) {
 
-    let args = request.replace(/\-/g, ' ').split('&');
+    let args = request.replace(/\-/g, ' ').replace(/(\d+)&/g, ' $1&').split('&');
     args.forEach(str => {
       let arr = str.split(' ');
 
-      let field;
-      let operand;
-      let value;
+      let field = arr[0];
+      let operand = arr[1];
+      let value = arr[2];
 
-      if (Filter.allowedFilters.has(arr[1][0])) {
-        field = arr[0];
-        operand = arr[1][0];
-        
-      }
+      this._products.forEach((product) =>{
+        if (field in product && Filter.allowedFilters.has(operand)) {
+          
+        }
+      });
+
 
     });
 
@@ -58,5 +60,5 @@ let products = [iphone, android, sneakers];
 
 let filer = new Filter(products);
 
-filer.filer('name-contains-fd&price-=2&quantity->5&description-ends-abc');
+filer.filer('name-contains-fd&price->=2&quantity->5&description-ends-abc');
 // filer.filer('name-starts-fd&quantity-=5');
